@@ -3,6 +3,9 @@ import chatbot_backend as demo_bot
 
 st.title("Generative AI Chatbot using LLama3.2")
 
+if 'memory' not in st.session_state:
+    st.session_state.memory = demo_bot.demo_memory()
+
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
@@ -16,11 +19,11 @@ if input_text:
         st.markdown(input_text)
 
     st.session_state.chat_history.append({"role": "user", "text": input_text})
-    chat_response = demo_bot.demo_conversion(input_text=input_text)
+    chat_response = demo_bot.demo_conversion(input_text=input_text, memory=st.session_state.memory)
 
     with st.chat_message("assistant"):
-        st.markdown(chat_response.content)
+        st.markdown(chat_response)
 
-    st.session_state.chat_history.append({"role": "assistant", "text": chat_response.content})
+    st.session_state.chat_history.append({"role": "assistant", "text": chat_response})
 
     
