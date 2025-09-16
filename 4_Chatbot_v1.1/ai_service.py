@@ -1,20 +1,41 @@
 # =============== IMPORTING REQUIRED LIBRARIES ===============
 from langchain_ollama import ChatOllama
-from langchain_core.messages import SystemMessage, HumanMessage
 from langchain.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
     AIMessagePromptTemplate
 )
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+import streamlit as st
 
 class AIService:
     """Backend service for handling AI model interactions"""
     
+    store = {}
+
     def __init__(self):
         self.model_name = "llama3.2"
     
-    def get_response(self, full_prompt: str, temperature: float):
+    def get_model(self, temperature:float):
+        """Return the current AI model with specified temperature setting"""
+        # Create a new instance of the AI chat model
+        model = ChatOllama(
+            model=self.model_name,
+            temperature=float(temperature)
+        )
+        
+        return model
+    
+    def get_session_history(self, session_id: str) -> InMemoryChatMessageHistory:
+        if session_id not in self.store:
+            self.store[session_id] = InMemoryChatMessageHistory()
+        return self.store[session_id]
+    
+    # @st.cache_data tells Streamlit to cache this function's output to improve performance
+    @st.cache_data
+    def get_response(_self, full_prompt: str, temperature: float):
         """
         Generate AI responses based on user input and settings
         Parameters:
@@ -25,14 +46,16 @@ class AIService:
         if not full_prompt:
             return None
         
-        # Create a new instance of the AI chat model
-        chat_model = ChatOllama(
-            model=self.model_name,
-            temperature=float(temperature)
+        # Create a new instance of the AI chat model      
+        chat_model = _self.get_model(temperature)
+
+        # Maintain chat history per session
+        chat_with_history = RunnableWithMessageHistory(chat_model, _self.get_session_history)
+        response = chat_with_history.invoke(
+            input=full_prompt,
+            config={"configurable": {"session_id": "default_session"}}
         )
-        
-        # Send the messages to the AI and get its response
-        response = chat_model.invoke(input=full_prompt)
+
         return response
 
 

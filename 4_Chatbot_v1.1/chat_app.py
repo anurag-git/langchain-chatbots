@@ -7,6 +7,7 @@ class ChatApp:
     def __init__(self):
         self.ai_service = AIService()
         self.prompt_service = PromptService()
+        self.chatbot_name = "ChatBotX"
         
     def initialize_session_state(self):
         """Initializes required session state variables if they don't exist."""
@@ -18,14 +19,7 @@ class ChatApp:
         # Initialize temperature change tracker in session state
         if 'temp_changed' not in st.session_state:
             st.session_state.temp_changed = False
-        
-        if "use_chat_history" not in st.session_state:
-            st.session_state.use_chat_history = True
-        
-        # Initialize the session state variable if it doesn't exist
-        if 'num_chat_messages' not in st.session_state:
-            st.session_state.num_chat_messages = 0
-    
+
     def on_temp_change(self):
         """Mark that temperature has been changed to trigger response regeneration"""
         st.session_state.temp_changed = True
@@ -79,14 +73,13 @@ class ChatApp:
         with st.chat_message("user"):
             st.markdown(f"**You:** {user_prompt}")
         
-        chatbot_name = "ChatBotX"
         # Show loading spinner while generating response
         with st.spinner("Generating response..."):
             # Create prompt
             full_prompt = self.prompt_service.create_prompt(
                 user_prompt, 
                 response_type,
-                chatbot_name
+                self.chatbot_name
             )
             
             # Get AI response
@@ -96,13 +89,13 @@ class ChatApp:
             # Save AI's response to chat history
             st.session_state.messages.append({
                 "role": "assistant", 
-                "name": chatbot_name,
+                "name": self.chatbot_name,
                 "content": ai_message
             })
             
             # Display AI response
             with st.chat_message("assistant"):
-                st.markdown(f"**{chatbot_name}:** {ai_message}")
+                st.markdown(f"**{self.chatbot_name}:** {ai_message}")
         
         # Add visual separator
         st.divider()
