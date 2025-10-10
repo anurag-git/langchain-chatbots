@@ -1,0 +1,48 @@
+# Development environment configuration
+ai_model:
+  name: "llama3.2"
+  temperature: 0.8
+  timeout: 60.0
+  max_tokens: 2000
+
+chatbot:
+  name: "ChatBotX-Dev"
+  debug_mode: true
+  verbose_logging: true
+
+ui:
+  page_title: "ChatBot Development"
+  layout: "wide"
+  app_title: "Development - Generative AI Chatbot"
+  debug_info: true
+
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+  file: "logs/dev_chat_logs.txt"
+  console: true
+
+database:
+  url: "sqlite:///dev_chatbot.db"
+  echo: true
+
+cache:
+  enabled: true
+  ttl: 300  # 5 minutes
+  max_size: 50
+
+monitoring:
+  metrics_enabled: true
+  health_checks_enabled: true
+  check_interval: 30
+  retention_hours: 24
+
+api:
+  timeout: 30.0
+  max_retries: 3
+  rate_limit: 100  # requests per hour
+
+security:
+  enable_cors: true
+  allowed_origins: ["http://localhost:8501", "http://127.0.0.1:8501"]
+  api_key_required: false

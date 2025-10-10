@@ -1,0 +1,63 @@
+# Staging environment configuration
+ai_model:
+  name: "llama3.2"
+  temperature: 0.7
+  timeout: 45.0
+  max_tokens: 1500
+
+chatbot:
+  name: "ChatBotX-Staging"
+  debug_mode: false
+  verbose_logging: false
+
+ui:
+  page_title: "ChatBot Staging"
+  layout: "wide"
+  app_title: "Staging - Generative AI Chatbot"
+  debug_info: false
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/staging_chat_logs.txt"
+  console: true
+  rotation: "midnight"
+  backup_count: 7
+
+database:
+  url: "postgresql://user:pass@staging-db:5432/chatbot_staging"
+  echo: false
+  pool_size: 5
+
+cache:
+  enabled: true
+  ttl: 600  # 10 minutes
+  max_size: 200
+
+monitoring:
+  metrics_enabled: true
+  health_checks_enabled: true
+  check_interval: 60
+  retention_hours: 72
+
+api:
+  timeout: 30.0
+  max_retries: 3
+  rate_limit: 500  # requests per hour
+
+security:
+  enable_cors: true
+  allowed_origins: ["https://staging.chatbot.com"]
+  api_key_required: true
+  session_timeout: 3600  # 1 hour
+
+performance:
+  max_concurrent_requests: 50
+  request_timeout: 30.0
+  cache_warming: true
+
+alerts:
+  enabled: true
+  email_recipients: ["dev@company.com"]
+  error_threshold: 0.05  # 5% error rate
+  response_time_threshold: 5.0  # seconds
