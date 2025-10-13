@@ -5,8 +5,8 @@ This package contains the main business logic and AI service components.
 """
 from .chatbot import ChatbotService, ChatRequest, ChatResponse, PromptService
 from .conversation_manager import ConversationManager, ConversationMessage
-from .nlp_utils import TextProcessor, IntentClassifier, EntityExtractor
-from .api_utils import APIClient, ModelAPIAdapter, ExternalServiceIntegration
+#from .nlp_utils import TextProcessor, IntentClassifier, EntityExtractor
+#from .api_utils import APIClient, ModelAPIAdapter, ExternalServiceIntegration
 
 __version__ = "1.0.0"
 

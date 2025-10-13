@@ -65,8 +65,9 @@ class ChatbotService:
             input=full_prompt,
             config={"configurable": {"session_id": session_id}}
         )
+
         return response.content if hasattr(response, 'content') else str(response)
-    
+        
     async def get_response(self, request: ChatRequest) -> ChatResponse:
         """
         Generate AI responses based on user input and settings
@@ -112,6 +113,51 @@ class ChatbotService:
                 response_type=request.response_type,
                 metadata={"error": str(e)}
             )
+    
+    def _get_streaming_response(self, full_prompt: str, temperature: float, session_id: str):
+        """Internal streaming response method (not cached)"""
+        chat_model = self.get_model(temperature)
+        chat_with_history = RunnableWithMessageHistory(chat_model, self.get_session_history)
+        
+        # Use stream for streaming responses
+        return chat_with_history.stream(
+            input=full_prompt,
+            config={"configurable": {"session_id": session_id}}
+        )
+
+    def get_response_stream(self, request: ChatRequest):
+        """
+        Generate streaming AI responses based on user input and settings
+        Returns generator that yields response chunks
+        """
+        if not request.user_input:
+            yield "Please provide input for the chatbot."
+            return
+        
+        try:
+            # Create full prompt using prompt service
+            full_prompt = PromptService.create_prompt(
+                request.user_input, 
+                request.response_type, 
+                self.chatbot_name
+            )
+            
+            # Get streaming response (no caching for streams)
+            stream = self._get_streaming_response(
+                full_prompt, 
+                request.temperature, 
+                request.session_id
+            )
+            
+            # Yield each chunk from the stream
+            for chunk in stream:
+                if hasattr(chunk, 'content'):
+                    yield chunk.content
+                else:
+                    yield str(chunk)
+                    
+        except Exception as e:
+            yield f"Error generating response: {str(e)}"
 
 class PromptService:
     """Service for handling prompt generation and formatting"""

@@ -122,11 +122,15 @@ class ChatInterface(UIComponent):
         with st.chat_message("user"):
             st.markdown(user_input)
         
-        # Generate and display assistant response
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                self._generate_and_display_response(user_input)
+        # # Generate and display assistant response
+        # with st.chat_message("assistant"):
+        #     with st.spinner("Thinking..."):
+        #         self._generate_and_display_response(user_input)
     
+        # Generate and display assistant streaming response
+        with st.chat_message("assistant"):
+            self._generate_and_display_streaming_response(user_input)
+
     def _generate_and_display_response(self, user_input: str):
         """Generate response from AI service and display"""
         try:
@@ -151,6 +155,36 @@ class ChatInterface(UIComponent):
             # Add to session state and conversation manager
             st.session_state.messages.append({"role": "assistant", "content": response.message})
             self.conversation_manager.add_assistant_message(response.message, response.metadata)
+            
+        except Exception as e:
+            error_msg = f"Error: {str(e)}"
+            st.error(error_msg)
+            st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
+    def _generate_and_display_streaming_response(self, user_input: str):
+        """Generate response from AI service and display with streaming"""
+        try:
+            # Get current settings
+            response_type = st.session_state.get("response_type", "standard")
+            temperature = st.session_state.get("temperature", 0.7)
+            
+            # Create request
+            request = ChatRequest(
+                user_input=user_input,
+                temperature=temperature,
+                response_type=response_type,
+                session_id=self.conversation_manager.session_id
+            )
+            
+            # Get streaming response using the new method
+            response_generator = self.chatbot_service.get_response_stream(request)
+            
+            # Stream the response using st.write_stream
+            response_content = st.write_stream(response_generator)
+            
+            # Add to session state and conversation manager
+            st.session_state.messages.append({"role": "assistant", "content": response_content})
+            self.conversation_manager.add_assistant_message(response_content, {})
             
         except Exception as e:
             error_msg = f"Error: {str(e)}"
