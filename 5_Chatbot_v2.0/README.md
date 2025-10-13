@@ -25,6 +25,7 @@ streamlit run <main_file_name.py> e.g. streamlit run app.py
 
 
 # Application Structure
+```
 chatbot-app/
 │
 ├── app.py                    # Main Streamlit app entry point
@@ -85,7 +86,9 @@ chatbot-app/
 │
 └── docs/
     └── architecture.md
+```
 
 # To import requirement.txt to pyprojects.toml
 uv add -r requirements.txt    # Imports requirements.txt into pyproject.toml
+
 rm requirements.txt           # Remove old file
