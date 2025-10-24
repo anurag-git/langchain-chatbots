@@ -3,4 +3,6 @@ langchain
 langchain_core
 langchain-ollama
 langchain_community
+langchain-huggingface
 pyyaml
+huggingface_hub

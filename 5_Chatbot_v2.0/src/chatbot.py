@@ -5,7 +5,7 @@ Handles all AI model interactions and business logic.
 from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from langchain_ollama import ChatOllama
-from langchain.prompts import (
+from langchain_classic.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
@@ -14,7 +14,8 @@ from langchain.prompts import (
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from functools import lru_cache
-
+from huggingface_hub import InferenceClient
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 @dataclass
 class ChatResponse:
@@ -40,6 +41,9 @@ class ChatbotService:
     def __init__(self, config: Dict[str, Any]):
         self.model_name = config['ai_model']['name']
         self.chatbot_name = config['chatbot']['name']
+        self.repo= config['llm']['repo']
+        self.api_token= config['llm']['api_token']
+        self.api_endpoint= config['llm']['api_endpoint']
         self.store: Dict[str, InMemoryChatMessageHistory] = {}
         
     def get_model(self, temperature: float) -> ChatOllama:
@@ -48,7 +52,20 @@ class ChatbotService:
             model=self.model_name,
             temperature=float(temperature)
         )
-    
+
+    def get_huggingface_model(self, temperature: float) -> ChatHuggingFace:
+        """
+        Return the Hugging Face LLM wrapper compatible with LangChain.
+        """
+        llm = HuggingFaceEndpoint(
+            repo_id=self.repo, # Model name
+            huggingfacehub_api_token=self.api_token,
+            temperature=temperature,
+            streaming=True
+        )
+
+        return ChatHuggingFace(llm=llm)
+
     def get_session_history(self, session_id: str) -> InMemoryChatMessageHistory:
         """Get or create session history for conversation management"""
         if session_id not in self.store:
@@ -122,9 +139,20 @@ class ChatbotService:
         # Use stream for streaming responses
         return chat_with_history.stream(
             input=full_prompt,
-            config={"configurable": {"session_id": session_id}}
+            config={"configurable": {"session_id": "session_id"}}
         )
 
+    def _get_huggingface_streaming_response(self, full_prompt: str, temperature: float):
+        """Internal streaming response method (not cached)"""
+        chat_model = self.get_huggingface_model(temperature)
+        chat_with_history = RunnableWithMessageHistory(chat_model, self.get_session_history)
+        
+        # Use stream for streaming responses
+        return chat_with_history.stream(
+            input=full_prompt,
+            config={"configurable": {"session_id": "session_id"}}
+        )
+    
     def get_response_stream(self, request: ChatRequest):
         """
         Generate streaming AI responses based on user input and settings
@@ -142,13 +170,21 @@ class ChatbotService:
                 self.chatbot_name
             )
             
+            #####    code to use local model for streaming  #####
+            # # Get streaming response (no caching for streams)
+            # stream = self._get_streaming_response(
+            #     full_prompt, 
+            #     request.temperature, 
+            #     request.session_id
+            # )
+            #####    code to use local model for streaming  #####
+
             # Get streaming response (no caching for streams)
-            stream = self._get_streaming_response(
+            stream = self._get_huggingface_streaming_response(
                 full_prompt, 
-                request.temperature, 
-                request.session_id
+                request.temperature
             )
-            
+
             # Yield each chunk from the stream
             for chunk in stream:
                 if hasattr(chunk, 'content'):

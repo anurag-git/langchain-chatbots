@@ -1,6 +1,6 @@
 # =============== IMPORTING REQUIRED LIBRARIES ===============
 from langchain_ollama import ChatOllama
-from langchain.prompts import (
+from langchain_classic.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,

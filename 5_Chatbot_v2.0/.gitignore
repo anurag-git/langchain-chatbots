@@ -12,3 +12,5 @@ venv/
 
 # Logs
 logs/
+
+settings.yaml
