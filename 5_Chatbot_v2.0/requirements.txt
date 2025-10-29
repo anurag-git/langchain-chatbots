@@ -1,8 +1,8 @@
-streamlit
-langchain
-langchain_core
-langchain-ollama
-langchain_community
-langchain-huggingface
-pyyaml
-huggingface_hub
+streamlit==1.50.0
+langchain==1.0.2
+langchain_core==1.0.0
+langchain-ollama==1.0.0
+langchain_community==0.4
+langchain-huggingface==1.0.0
+huggingface-hub==0.36.0
+pyyaml==6.0.3

@@ -14,7 +14,6 @@ from langchain_classic.prompts import (
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from functools import lru_cache
-from huggingface_hub import InferenceClient
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 
 @dataclass

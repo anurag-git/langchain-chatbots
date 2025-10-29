@@ -15,6 +15,7 @@ pip install -r requirements.txt
 ## Installs your project + all dependencies (if pyproject.toml is used)
 pip install -e .  
 
+Rename settings-example.yaml to settings.yaml and add your huggingface api token
 
 # Execution
 ## Execute the python code
