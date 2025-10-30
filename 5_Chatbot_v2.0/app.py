@@ -67,15 +67,15 @@ def main():
     page_config.render()
     
     # Create UI components
+    chat_interface = ChatInterface(config, chatbot_service, conversation_manager)
     sidebar = SidebarComponent(config, conversation_manager)
-
-    chat_interface = ChatInterface(chatbot_service, conversation_manager)
     
     # Render sidebar and get settings
-    sidebar.render()
+    res_type = sidebar.render()
+    print(f"Selected response type: {res_type}")
 
     # Render main chat interface
-    chat_interface.render()
+    chat_interface.render(res_type)
 
 
 if __name__ == "__main__":

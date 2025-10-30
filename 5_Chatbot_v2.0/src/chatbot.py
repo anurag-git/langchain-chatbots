@@ -60,7 +60,8 @@ class ChatbotService:
             repo_id=self.repo, # Model name
             huggingfacehub_api_token=self.api_token,
             temperature=temperature,
-            streaming=True
+            streaming=True,
+            do_sample=True
         )
 
         return ChatHuggingFace(llm=llm)
@@ -168,7 +169,7 @@ class ChatbotService:
                 request.response_type, 
                 self.chatbot_name
             )
-            
+
             #####    code to use local model for streaming  #####
             # # Get streaming response (no caching for streams)
             # stream = self._get_streaming_response(

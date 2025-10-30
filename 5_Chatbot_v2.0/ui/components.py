@@ -2,11 +2,9 @@
 Pure Streamlit UI components with no AI logic
 """
 import streamlit as st
-import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Dict
-from src import ChatbotService, ChatRequest
-from src import ConversationManager
+from src import ChatbotService, ChatRequest, ConversationManager
 
 
 class UIComponent(ABC):
@@ -73,27 +71,31 @@ class SidebarComponent(UIComponent):
                 index=0,
                 key="response_type"
             )
-            self.conversation_manager.set_response_type(response_type)
-                      
-            temperature = 0.7  # Fixed temperature for simplicity
 
+            self.conversation_manager.set_response_type(response_type)
+            
             # Clear conversation button
             if st.button("Clear Conversation", type="secondary"):
                 self.conversation_manager.clear_conversation()
                 if 'messages' in st.session_state:
                     st.session_state.messages = []
                 st.rerun()
-            
-            return {
-                "response_type": response_type,
-                "temperature": temperature
-            }
 
+            return response_type
 
 class ChatInterface(UIComponent):
     """Main chat interface component"""
     
-    def render(self):
+    def __init__(self, config: Dict[str, Any], chatbot_service: ChatbotService, conversation_manager: ConversationManager):
+        self.config = config
+        self.conversation_manager = conversation_manager
+        self.chatbot_service = chatbot_service
+        self.standard_temperature = self.config['ai_model']['standard_temperature']
+        self.factual_temperature = self.config['ai_model']['factual_temperature']
+        self.creative_temperature = self.config['ai_model']['creative_temperature']
+        super().__init__(chatbot_service, conversation_manager)
+
+    def render(self, response_type: str):
         """Render the main chat interface"""
         # Initialize session state
         if 'messages' not in st.session_state:
@@ -104,7 +106,7 @@ class ChatInterface(UIComponent):
         
         # Chat input
         if prompt := st.chat_input("What would you like to know?"):
-            self._handle_user_input(prompt)
+            self._handle_user_input(prompt, response_type)
     
     def _display_chat_history(self):
         """Display conversation history"""
@@ -112,7 +114,7 @@ class ChatInterface(UIComponent):
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
     
-    def _handle_user_input(self, user_input: str):
+    def _handle_user_input(self, user_input: str, response_type: str):
         """Handle user input and generate response"""
         # Add user message to session state
         st.session_state.messages.append({"role": "user", "content": user_input})
@@ -121,57 +123,30 @@ class ChatInterface(UIComponent):
         # Display user message
         with st.chat_message("user"):
             st.markdown(user_input)
-        
-        # # Generate and display assistant response
-        # with st.chat_message("assistant"):
-        #     with st.spinner("Thinking..."):
-        #         self._generate_and_display_response(user_input)
-    
+           
         # Generate and display assistant streaming response
         with st.chat_message("assistant"):
-            self._generate_and_display_streaming_response(user_input)
+            self._generate_and_display_streaming_response(user_input, response_type)
 
-    def _generate_and_display_response(self, user_input: str):
-        """Generate response from AI service and display"""
-        try:
-            # Get current settings
-            response_type = st.session_state.get("response_type", "standard")
-            temperature = st.session_state.get("temperature", 0.7)
-            
-            # Create request
-            request = ChatRequest(
-                user_input=user_input,
-                temperature=temperature,
-                response_type=response_type,
-                session_id=self.conversation_manager.session_id
-            )
-            
-            # Get response (sync wrapper for async method)
-            response = asyncio.run(self.chatbot_service.get_response(request))
-            
-            # Display response
-            st.markdown(response.message)
-            
-            # Add to session state and conversation manager
-            st.session_state.messages.append({"role": "assistant", "content": response.message})
-            self.conversation_manager.add_assistant_message(response.message, response.metadata)
-            
-        except Exception as e:
-            error_msg = f"Error: {str(e)}"
-            st.error(error_msg)
-            st.session_state.messages.append({"role": "assistant", "content": error_msg})
-
-    def _generate_and_display_streaming_response(self, user_input: str):
+    def _generate_and_display_streaming_response(self, user_input: str, response_type: str):
         """Generate response from AI service and display with streaming"""
-        try:
-            # Get current settings
-            response_type = st.session_state.get("response_type", "standard")
-            temperature = st.session_state.get("temperature", 0.7)
+        try:   
+            print(f"_generate_and_display_streaming_response::Response type set to: {response_type}")
+            if response_type == 'standard':
+                temp = self.standard_temperature
+            elif response_type == 'creative':
+                temp = self.creative_temperature
+            elif response_type == 'factual':
+                temp = self.factual_temperature
+            else:
+                temp = 0.7  # default
             
+            print(f"_generate_and_display_streaming_response::Response type set to: {temp}")
+
             # Create request
             request = ChatRequest(
                 user_input=user_input,
-                temperature=temperature,
+                temperature=temp,
                 response_type=response_type,
                 session_id=self.conversation_manager.session_id
             )
@@ -190,3 +165,4 @@ class ChatInterface(UIComponent):
             error_msg = f"Error: {str(e)}"
             st.error(error_msg)
             st.session_state.messages.append({"role": "assistant", "content": error_msg})
+
