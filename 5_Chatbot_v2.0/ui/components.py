@@ -93,6 +93,7 @@ class ChatInterface(UIComponent):
         self.standard_temperature = self.config['ai_model']['standard_temperature']
         self.factual_temperature = self.config['ai_model']['factual_temperature']
         self.creative_temperature = self.config['ai_model']['creative_temperature']
+        self.default_temperature = self.config['ai_model']['default_temperature']
         super().__init__(chatbot_service, conversation_manager)
 
     def render(self, response_type: str):
@@ -139,7 +140,7 @@ class ChatInterface(UIComponent):
             elif response_type == 'factual':
                 temp = self.factual_temperature
             else:
-                temp = 0.7  # default
+                temp = self.default_temperature  # default
             
             print(f"_generate_and_display_streaming_response::Response type set to: {temp}")
 
