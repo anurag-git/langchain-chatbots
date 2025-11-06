@@ -93,6 +93,9 @@ class ChatInterface(UIComponent):
         self.standard_temperature = self.config['ai_model']['standard_temperature']
         self.factual_temperature = self.config['ai_model']['factual_temperature']
         self.creative_temperature = self.config['ai_model']['creative_temperature']
+        self.default_temperature = self.config['ai_model']['default_temperature']
+        self.use_search = self.config['search']['enabled']
+
         super().__init__(chatbot_service, conversation_manager)
 
     def render(self, response_type: str):
@@ -139,7 +142,7 @@ class ChatInterface(UIComponent):
             elif response_type == 'factual':
                 temp = self.factual_temperature
             else:
-                temp = 0.7  # default
+                temp = self.default_temperature  # default
             
             print(f"_generate_and_display_streaming_response::Response type set to: {temp}")
 
@@ -151,8 +154,14 @@ class ChatInterface(UIComponent):
                 session_id=self.conversation_manager.session_id
             )
             
-            # Get streaming response using the new method
-            response_generator = self.chatbot_service.get_response_stream(request)
+            if self.use_search:
+                # Use search-enabled response
+                print("_generate_and_display_streaming_response::Using search-enabled response generation.")
+                response_generator = self.chatbot_service.get_response_with_search(request)
+            else:
+                # Get streaming response using the new method
+                print("_generate_and_display_streaming_response::Using standard streaming response generation.")
+                response_generator = self.chatbot_service.get_response_stream(request)
             
             # Stream the response using st.write_stream
             response_content = st.write_stream(response_generator)

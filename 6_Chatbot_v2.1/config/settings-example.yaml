@@ -26,3 +26,8 @@ ui:
 cache:
   enabled: true
   ttl: 3600
+
+search:
+    enabled: True
+    provider: "duckduckgo"
+    max_results: 5
